@@ -1,0 +1,418 @@
+openapi: 3.0.1
+info:
+  title: Swagger Petstore
+  termsOfService: http://swagger.io/terms/
+  contact:
+    email: apiteam@swagger.io
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+externalDocs:
+  description: Find out more about Swagger
+  url: http://swagger.io
+servers:
+  - url: http://calendar.swagger.io/v2
+tags:
+  - name: Course
+    description: Operations about Course
+  - name: Student
+    description: Operations about Student
+  - name: Teacher
+    description: Operations about User
+paths:
+  /Course/list:
+    get:
+      tags:
+        - Course
+      summary: Returns all events by status
+      description: Returns a map of status codes to quantities
+      operationId: getInventory
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: integer
+                  format: int32
+      security:
+        - api_key: []
+  /Course:
+    get:
+      tags:
+        - Course
+      summary: Returns all students on the course
+      operationId: getStudents
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: integer
+                  format: int32
+      security:
+        - api_key: []
+  /Student/login:
+    get:
+      tags:
+        - Student
+      summary: Logs user into the system
+      operationId: loginStudent
+      parameters:
+        - name: email
+          in: query
+          description: The student's email for login
+          required: true
+          schema:
+            type: string
+        - name: password
+          in: query
+          description: The password for login in clear text
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          headers:
+            X-Rate-Limit:
+              description: calls per hour allowed by the user
+              schema:
+                type: integer
+                format: int32
+            X-Expires-After:
+              description: date in UTC when token expires
+              schema:
+                type: string
+                format: date-time
+          content:
+            application/xml:
+              schema:
+                type: string
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: Invalid username/password supplied
+          content: {}
+  /Student/logout:
+    get:
+      tags:
+        - Student
+      summary: Logs out current logged in user session
+      operationId: logoutUser
+      responses:
+        '200':
+          description: successful operation
+  /Student/{CourseID}:
+    post:
+      tags:
+        - Student
+      summary: Sends request to enroll on particular course
+      operationId: sendRequest
+      parameters:
+        - name: CourseID
+          in: path
+          description: ID of course that needs to be updated
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              properties:
+                name:
+                  type: string
+                  description: Updated name of the pet
+                status:
+                  type: string
+                  description: Updated status of the pet
+      responses:
+        '200':
+          description: successful operation
+        '405':
+          description: Invalid input
+          content: {}
+      security:
+        - api_key: []
+  /Student/list:
+    get:
+      tags:
+        - Student
+      summary: Returns all current courses by status
+      description: Returns a map of status codes to quantities
+      operationId: getCoursesList
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: integer
+                  format: int32
+      security:
+        - api_key: []
+  /Teacher:
+    put:
+      tags:
+        - Teacher
+      summary: Create a course
+      operationId: createCourse
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Course'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/Course'
+        required: true
+      responses:
+        '200':
+          description: successful operation
+        '400':
+          description: Invalid ID supplied
+          content: {}
+        '404':
+          description: Event not found
+          content: {}
+        '405':
+          description: Validation exception
+          content: {}
+      x-codegen-request-body-name: body
+    post:
+      tags:
+        - Teacher
+      summary: Add a new student to the course
+      operationId: addStudent
+      requestBody:
+        description: Student that needs to be added to the course
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Course'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/Course'
+        required: true
+      responses:
+        '200':
+          description: successful operation
+        '405':
+          description: Invalid input
+          content: {}
+      x-codegen-request-body-name: body
+  /Teacher/{CourseID}:
+    post:
+      tags:
+        - Teacher
+      summary: Updates an event in the Calendar with form data
+      operationId: updateCourse
+      parameters:
+        - name: CourseID
+          in: path
+          description: ID of course that needs to be updated
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              properties:
+                name:
+                  type: string
+                  description: Updated name of the pet
+                status:
+                  type: string
+                  description: Updated status of the pet
+      responses:
+        '200':
+          description: successful operation
+        '405':
+          description: Invalid input
+          content: {}
+      security:
+        - petstore_auth:
+            - write:pets
+            - read:pets
+    delete:
+      tags:
+        - Teacher
+      summary: Delete a course
+      operationId: deleteCourse
+      parameters:
+        - name: CourseID
+          in: path
+          description: Event id to delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: successful operation
+        '400':
+          description: Invalid ID supplied
+          content: {}
+        '404':
+          description: Pet not found
+          content: {}
+      security:
+        - petstore_auth:
+            - write:pets
+            - read:pets
+  /Teacher/{email}:
+    put:
+      tags:
+        - Teacher
+      summary: Add user to event
+      description: This can only be done by the logged in user.
+      operationId: addUser
+      parameters:
+        - name: email
+          in: path
+          description: name of the user that needs to be added
+          required: true
+          schema:
+            type: string
+        - name: courseID
+          in: query
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: Updated user object
+        content:
+          '*/*':
+            schema:
+              $ref: '#/components/schemas/Teacher'
+        required: true
+      responses:
+        '200':
+          description: successful operation
+        '400':
+          description: Invalid user supplied
+          content: {}
+        '404':
+          description: User not found
+          content: {}
+      x-codegen-request-body-name: body
+      security:
+        - api_key: []
+    delete:
+      tags:
+        - Teacher
+      summary: Delete student from the course
+      description: This can only be done by the logged in user.
+      operationId: deleteStudent
+      parameters:
+        - name: email
+          in: path
+          description: The email that needs to be deleted
+          required: true
+          schema:
+            type: string
+        - name: courseID
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: successful operation
+        '400':
+          description: Invalid username supplied
+          content: {}
+        '404':
+          description: User not found
+          content: {}
+      security:
+        - api_key: []
+components:
+  schemas:
+    Teacher:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        userStatus:
+          type: integer
+          description: Teacher Status
+          format: int32
+      xml:
+        name: Teacher
+    Student:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        status:
+          type: string
+          description: User status on the particular course
+          enum:
+            - Added
+            - Not Added
+      xml:
+        name: User
+    Course:
+      required:
+        - courseName
+      oneOf:
+        - type: object
+        - type: number
+      minimum: 0
+      exclusiveMinimum: true
+      maximum: 5
+      properties:
+        id:
+          type: integer
+          format: int64
+        courseName:
+          type: string
+          example: Application Programming
+        studentAmount:
+          type: integer
+          format: int64
+  securitySchemes:
+    petstore_auth:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: http://petstore.swagger.io/oauth/dialog
+          scopes:
+            write:pets: modify events in your account
+            read:pets: read your events
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header
